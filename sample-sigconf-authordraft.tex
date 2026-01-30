@@ -120,7 +120,7 @@
 %%
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
-\title{HDE: Bridging Decision Trees and Neural Networks via Hyperbolic Decision Embedding on Tabular Data}
+\title{HDE-net: Manifold Constrained Tabular Deep Neural Networks}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -203,10 +203,14 @@
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
-\begin{abstract}
-Despite the prevalence of Deep Neural Networks (DNNs), Gradient Boosted Decision Trees (GBDTs) remain the dominant baseline for tabular data, largely due to their unified handling of heterogeneous features and efficient hierarchical reasoning. By comparing their modeling processes, we identify a critical bottleneck in existing DNNs: a \textbf{Representation Granularity Mismatch}, where categorical features are modeled via fine-grained \textit{value-level} embeddings, while numerical features are reduced to coarse \textit{feature-level} linear projections. Moreover, Euclidean spaces struggle to model the exponential branching of decision trees, lacking the necessary intrinsic geometry.
+\begin{abstract} 
 
-To bridge this gap, we propose \textbf{Hyperbolic Decision Embedding (HDE)}, a framework that establishes a geometric isomorphism between neural embeddings and decision tree inference. HDE unifies feature representation by treating both categorical values and numerical ranges as \textbf{Latent Decision Nodes (LDNs)} within the Poincaré ball. Specifically, we introduce \textbf{Soft Decision Routing} to semantically discretize numerical features, aligning them with the value-level granularity of categorical embeddings. By leveraging the exponential volume growth of hyperbolic geometry, HDE implicitly enforces hierarchical constraints, mimicking tree-like decision boundaries within the continuous valued space. Furthermore, we incorporate an \textbf{entropy-aware} mechanism to adaptively allocate semantic capacity for numerical LDNs. This \textit{``heavy-representation, light-backbone''} design enables our full model, \textbf{HDE-Net}, to achieve State-of-the-Art performance using only a simple MLP predictor. Extensive experiments on the TALENT-tiny-core classification benchmark demonstrate that HDE-Net ranks \textbf{1st (4.17)}, significantly outperforming both leading tree-based and deep learning baselines.
+
+Despite the success of Tabular Deep Neural Network (DNN) models, Gradient-Boosted Decision Tree (GBDT) models remain the dominant baseline for tabular data, largely due to their efficiency in processing heterogeneous features and hierarchical reasoning. The critical bottleneck in tabular DNNs is representation granularity mismatch and inability to compensate for hierarchical reasoning. %, in which categorical features are modeled with fine-grained \textit{value-level} embeddings, while numerical features are reduced to coarse \textit{feature-level} linear projections. 
+% Moreover, Euclidean spaces struggle to model the exponential branching of decision trees because they lack the necessary intrinsic geometry. 
+To bridge this gap, we propose a novel \textit{Hyperbolic Decision Embedding (HDE)} framework that simulates a geometric isomorphism between feature embeddings and decision-tree inference. HDE unifies feature embedding by treating both categorical values and numerical ranges as \textit{Latent Decision Nodes (LDNs)} within the Poincaré ball hyperbolic representation. Specifically, we introduce \textit{Soft Decision Routing} to semantically discretize numerical features, aligning them with the value-level granularity of categorical embeddings. By leveraging the exponential growth in hyperbolic geometry, HDE implicitly enforces hierarchical constraints, mimicking tree-like decision boundaries in the continuous-valued space. Furthermore, we incorporate an \textit{entropy-aware} mechanism to adaptively allocate semantic capacity for numerical LDNs. Our model, \textit{HDE-Net}, achieves state-of-the-art performance on the TALENT-tiny-core classification benchmark, comprising 30 datasets. HDE-Net emerged \textit{ranks 1st} among both tree-based and tabular DNN baselines.
+
+%Despite the prevalence of Deep Neural Networks (DNNs), Gradient Boosted Decision Trees (GBDTs) remain the dominant baseline for tabular data, largely due to their unified handling of heterogeneous features and efficient hierarchical reasoning. By comparing their modeling processes, we identify a critical bottleneck in existing DNNs: a \textbf{Representation Granularity Mismatch}, where categorical features are modeled via fine-grained \textit{value-level} embeddings, while numerical features are reduced to coarse \textit{feature-level} linear projections. Moreover, Euclidean spaces struggle to model the exponential branching of decision trees, lacking the necessary intrinsic geometry. To bridge this gap, we propose \textbf{Hyperbolic Decision Embedding (HDE)}, a framework that establishes a geometric isomorphism between neural embeddings and decision tree inference. HDE unifies feature representation by treating both categorical values and numerical ranges as \textbf{Latent Decision Nodes (LDNs)} within the Poincaré ball. Specifically, we introduce \textbf{Soft Decision Routing} to semantically discretize numerical features, aligning them with the value-level granularity of categorical embeddings. By leveraging the exponential volume growth of hyperbolic geometry, HDE implicitly enforces hierarchical constraints, mimicking tree-like decision boundaries within the continuous valued space. Furthermore, we incorporate an \textbf{entropy-aware} mechanism to adaptively allocate semantic capacity for numerical LDNs. This \textit{``heavy-representation, light-backbone''} design enables our full model, \textbf{HDE-Net}, to achieve State-of-the-Art performance using only a simple MLP predictor. Extensive experiments on the TALENT-tiny-core classification benchmark demonstrate that HDE-Net ranks \textbf{1st (4.17)}, significantly outperforming both leading tree-based and deep learning baselines.
 
 \end{abstract}
 
@@ -298,8 +302,29 @@ Guided by the design philosophy of ``heavy-representation, light-backbone'', we 
     \item \textbf{SOTA Performance \& Efficiency}: HDE-Net achieves state-of-the-art results on the TALENT-tiny-core classification benchmark (Rank 1st), surpassing CatBoost, RealMLP, and ModernNCA. % Moreover, it demonstrates superior extensibility as a backbone for multi-modal healthcare tasks.
 \end{itemize}
 
-% Table generated by Excel2LaTeX from sheet 'Sheet6'\begin{table}[htbp]
-\small  \centering  \caption{Performance breakdown on the TALENT-tiny classification benchmark across dataset subsets defined by feature composition. Values represent the Average Rank (lower is better). Numbers in parentheses indicate the rank shift relative to the overall (``All'') performance (\textcolor{green}{green/-}: ranking down; \textcolor{red}{red/+}: ranking up).}    \begin{tabular}{cccccc}    \toprule    \multicolumn{2}{c}{Models} & All   & Num-only & Num > Cat & Num < Cat \\    \midrule    \multicolumn{1}{c}{\multirow{3}[2]{*}{\makecell*[c]{Tree\\Models}}} & Xgboost & 7.4  & 10.5 \textcolor{green}{(+3.1)} & 5.9 \textcolor{red}{(-1.5)} & 3.0 \textcolor{red}{(-4.3)} \\          & LightGBM & 8.4  & 11.0 \textcolor{green}{(+2.6)} & 6.5 \textcolor{red}{(-1.9)} & 5.5 \textcolor{red}{(-2.8)} \\          & CatBoost & 8.6  & 12.3 \textcolor{green}{(+3.7)} & 6.4 \textcolor{red}{(-2.2)} & 3.9 \textcolor{red}{(-4.7)} \\    \midrule    \multicolumn{1}{c}{\multirow{2}[2]{*}{\makecell*[tc]{Ad-hoc\\Fusion}}} & RealMLP & 8.9  & 6.4 \textcolor{red}{(-2.5)} & 9.7 \textcolor{green}{(+0.8)} & 12.9 \textcolor{green}{(+4.0)} \\          & MLP   & 14.9 & 10.1 \textcolor{red}{(-4.8)} & 17.8 \textcolor{green}{(+2.8)} & 21.0 \textcolor{green}{(+6.1)} \\    \midrule    \multicolumn{1}{c}{\multirow{2}[2]{*}{\makecell*[tc]{Pseudo\\Alignment}}} & FTT   & 11.6 & 12.3 \textcolor{green}{(+0.6)} & 11.3 \textcolor{red}{(-0.3)} & 10.7 \textcolor{red}{(-0.9)} \\          & ExcelFormer & 13.9 & 14.7 \textcolor{green}{(+0.8)} & 13.3 \textcolor{red}{(-0.6)} & 13.2 \textcolor{red}{(-0.7)} \\    \bottomrule    \end{tabular}%  \label{tab:motivation}%\end{table}%
+% Table generated by Excel2LaTeX from sheet 'Sheet6'
+\begin{table}[htbp]
+\small
+  \centering
+  \caption{Performance breakdown on the TALENT-tiny classification benchmark across dataset subsets defined by feature composition. Values represent the Average Rank (lower is better). Numbers in parentheses indicate the rank shift relative to the overall (``All'') performance (\textcolor{green}{green/-}: ranking down; \textcolor{red}{red/+}: ranking up).}
+    \begin{tabular}{cccccc}
+    \toprule
+    \multicolumn{2}{c}{Models} & All   & Num-only & Num > Cat & Num < Cat \\
+    \midrule
+    \multicolumn{1}{c}{\multirow{3}[2]{*}{\makecell*[c]{Tree\\Models}}} & Xgboost & 7.4  & 10.5 \textcolor{green}{(+3.1)} & 5.9 \textcolor{red}{(-1.5)} & 3.0 \textcolor{red}{(-4.3)} \\
+          & LightGBM & 8.4  & 11.0 \textcolor{green}{(+2.6)} & 6.5 \textcolor{red}{(-1.9)} & 5.5 \textcolor{red}{(-2.8)} \\
+          & CatBoost & 8.6  & 12.3 \textcolor{green}{(+3.7)} & 6.4 \textcolor{red}{(-2.2)} & 3.9 \textcolor{red}{(-4.7)} \\
+    \midrule
+    \multicolumn{1}{c}{\multirow{2}[2]{*}{\makecell*[tc]{Ad-hoc\\Fusion}}} & RealMLP & 8.9  & 6.4 \textcolor{red}{(-2.5)} & 9.7 \textcolor{green}{(+0.8)} & 12.9 \textcolor{green}{(+4.0)} \\
+          & MLP   & 14.9 & 10.1 \textcolor{red}{(-4.8)} & 17.8 \textcolor{green}{(+2.8)} & 21.0 \textcolor{green}{(+6.1)} \\
+    \midrule
+    \multicolumn{1}{c}{\multirow{2}[2]{*}{\makecell*[tc]{Pseudo\\Alignment}}} & FTT   & 11.6 & 12.3 \textcolor{green}{(+0.6)} & 11.3 \textcolor{red}{(-0.3)} & 10.7 \textcolor{red}{(-0.9)} \\
+          & ExcelFormer & 13.9 & 14.7 \textcolor{green}{(+0.8)} & 13.3 \textcolor{red}{(-0.6)} & 13.2 \textcolor{red}{(-0.7)} \\
+    \bottomrule
+    \end{tabular}%
+  \label{tab:motivation}%
+\end{table}%
+
 \section{Related Work}
 
 \begin{figure*}[t]
