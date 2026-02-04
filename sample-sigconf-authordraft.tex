@@ -389,7 +389,7 @@ While the Lorentz model is often preferred for numerical stability in complex GN
 \noindent\textbf{Tangent Space Projection.} 
 To integrate hyperbolic embeddings with Euclidean neural networks (i.e., the MLP backbone), we utilize the \textbf{Logarithmic Map} to project points from the manifold to the Euclidean tangent space at the origin $\mathcal{T}_{\mathbf{0}}\mathbb{B}_c^d$:
 \begin{equation}
-    \log_{\mathbf{0}}(\bm{x}) = \frac{2}{\sqrt{c}} \text{arctanh}(\sqrt{c}\|\bm{x}\|) \frac{\bm{x}}{\|\bm{x}\|}.
+    \log_{\mathbf{0}}(\bm{u}) = \frac{2}{\sqrt{c}} \text{arctanh}(\sqrt{c}\|\bm{u}\|) \frac{\bm{u}}{\|\bm{u}\|}.
 \end{equation}
 In HDE, we directly initialize Latent Decision Nodes on the manifold and use $\log_{\mathbf{0}}(\cdot)$ as the bridge to the Euclidean predictor.
 
