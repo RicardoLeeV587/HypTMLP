@@ -211,7 +211,7 @@
 \begin{abstract} 
 
 
-Despite the success of Tabular Deep Neural Network (DNN) models, Gradient-Boosted Decision Tree (GBDT) models remain the dominant baseline for tabular data, largely due to their efficiency in processing heterogeneous features and hierarchical reasoning. The critical bottleneck in tabular DNNs is feature representation granularity mismatch and inability to compensate for hierarchical reasoning. 
+Despite the success of Tabular Deep Neural Network (DNN) models, Gradient-Boosted Decision Tree (GBDT) models remain the dominant baseline for tabular data, largely due to their efficiency in processing heterogeneous features and hierarchical reasoning. The critical bottleneck in tabular DNNs is feature representation granularity mismatch and the inability to compensate for hierarchical reasoning. 
 To bridge this gap, we propose a novel \textit{Hyperbolic Decision Embedding Network (HDE-Net)} that simulates a geometric isomorphism between feature embeddings and decision-tree inference. HDE itself unifies feature embedding by treating both categorical values and numerical ranges as \textit{Latent Decision Nodes (LDNs)} within the Poincaré ball hyperbolic representation. Specifically, we introduce \textit{Soft Decision Routing} to semantically discretize numerical features, aligning them with the value-level granularity of categorical embeddings. By leveraging the exponential growth in hyperbolic geometry, HDE-Net implicitly enforces hierarchical constraints, mimicking tree-like decision boundaries in the continuous-valued space. Furthermore, we incorporate an \textit{entropy-aware} mechanism to adaptively allocate semantic capacity for numerical LDNs. Our model achieves state-of-the-art performance on the TALENT-tiny-core classification benchmark, comprising 30 datasets. HDE-Net emerged \textit{ranks 1st} among both tree-based and tabular DNN baselines.
 
 \end{abstract}
@@ -290,23 +290,22 @@ To bridge this gap, we propose a novel \textit{Hyperbolic Decision Embedding Net
 \section{Introduction}
 \label{sec:intro}
 
-Tabular data remains the cornerstone of critical real-world applications, from financial risk assessment to healthcare diagnostics \cite{guo2017deepfm, buczak2015survey, hyland2020early, liu2025talent}. Unlike images or text, tabular data is characterized by heterogeneous features, dense semantics, and lacks of spatial or sequential invariance. While Deep Neural Networks (DNNs) have revolutionized computer vision and NLP, their dominance has not fully transferred to the tabular domain \cite{yan2023t2g, ye2024revisiting}. Recent extensive benchmarks \cite{liu2025talent} and studies \cite{ye2024revisiting, ye2025closer} consistently demonstrate that Gradient Boosted Decision Trees (GBDTs), such as XGBoost \cite{chen2016xgboost} and CatBoost \cite{prokhorenkova2018catboost}, remain the dominant baseline in both accuracy and efficiency.
+Tabular data remains the cornerstone of critical real-world applications, from financial risk assessment to healthcare diagnostics \cite{guo2017deepfm, buczak2015survey, hyland2020early, liu2025talent}. Unlike images or text, tabular data is characterized by heterogeneous features, dense semantics, and a lack of spatial or sequential invariance. While Deep Neural Networks (DNNs) have revolutionized computer vision and NLP, their dominance has not fully transferred to the tabular domain \cite{yan2023t2g, ye2024revisiting}. Recent extensive benchmarks \cite{liu2025talent} and studies \cite{ye2024revisiting, ye2025closer} consistently demonstrate that Gradient Boosted Decision Trees (GBDTs), such as XGBoost \cite{chen2016xgboost} and CatBoost \cite{prokhorenkova2018catboost}, remain the dominant baseline in both accuracy and efficiency.
 
 Why do GBDTs still maintain this edge? We argue that their success hinges on two fundamental principles: \textit{1). Unified Node Representation}: Despite the heterogeneity of raw features, tree models abstract both categorical values and continuous numerical ranges into a unified formalism: discrete tree nodes. This unification prevents the model from being biased towards specific feature types, ensuring robust performance across diverse tabular scenarios. \textit{2). Hierarchical Reasoning}: The tree-like reasoning mechanism naturally captures non-linear decision boundaries and high-order interactions through hierarchical paths.
 
 In contrast, existing tabular DNNs suffer from two issues: \textit{1.) Representation Granularity Mismatch}: While categorical features are naturally modeled at the fine-grained ``value-level'' (via lookup tables for each unique value), numerical features are typically modeled at the coarse ``feature-level'' (e.g., a single linear projection shared across all values of a feature, or even simple raw-value concatenation \cite{huang2020tabtransformer, arik2021tabnet, gorishniy2022embeddings}). This restricts numerical representation to a linear value space, failing to capture the non-linear semantics inherent in data, and thereby forcing subsequent layers to compensate for this semantic deficiency. \textit{2.) geometric incompatibility}: DNNs operate in Euclidean space, whose geometry is ill-suited to model the exponential branching structure of decision trees, leading to a fundamental geometric mismatch between representation space and data structure.
 
-Prior research attempts to address these issues through ad-hoc feature fusion \cite{holzmuller2025realmlp, wang2021dcn} or pseudo-alignment via tokenizers \cite{gorishniy2021revisiting, yan2023t2g}. However, these paradigms often rely on either heuristic adjustments or bloated backbones to compensate for representation limitations, which often makes the models sensitive to specific feature types and difficult to generalize across datasets.
+Prior work has attempted to address these issues through ad hoc feature fusion \cite{holzmuller2025realmlp, wang2021dcn} or pseudo-alignment via tokenizers \cite{gorishniy2021revisiting, yan2023t2g}. However, these paradigms often rely on either heuristic adjustments or bloated backbones to compensate for representation limitations, which often makes the models sensitive to specific feature types and difficult to generalize across datasets.
 
 To resolve these two issues of granularity and geometry, we propose \textbf{Hyperbolic Decision Embedding Network (HDE-Net)}. Our framework establishes a geometric isomorphism with the inference logic of decision trees, achieving true value-level unification for heterogeneous features using Poincaré ball embeddings \cite{nickel2017poincare, becigneul2018riemannian, peng2021hyperbolic}.
 
-Our approach rests on two key innovations. First, we introduce \textit{Soft Decision Routing} for numerical features, which dynamically maps continuous values to \textit{Latent Decision Nodes (LDNs)}, simulating value range splitting and unifying the representation granularity of both feature types. Second, by embedding these nodes in hyperbolic space to construct \textit{Hyperbolic Decision Embeddings (HDE)}, we leverage its exponential volume growth to implicitly enforce hierarchical constraints. 
-Additionally, we design an \textit{Entropy-aware Capacity Allocation} algorithm to dynamically allocate semantic capacity (number of LDNs) for each numerical feature. Finally, we construct HDE-Net by coupling the expressive HDE with a simple MLP predictor. 
+Our approach rests on two key innovations. First, we introduce \textit{Soft Decision Routing} for numerical features, which dynamically maps continuous values to \textit{Latent Decision Nodes (LDNs)}, thereby simulating value-range splitting and unifying the representation granularity of both feature types. Second, by embedding these nodes in hyperbolic space to construct \textit{Hyperbolic Decision Embeddings (HDE)}, we leverage the exponential volume growth of hyperbolic space to implicitly enforce hierarchical constraints. Additionally, we design an \textit{Entropy-aware Capacity Allocation} algorithm to dynamically allocate semantic capacity (number of LDNs) for each numerical feature. Finally, we construct HDE-Net by coupling the expressive HDE with a simple MLP predictor. 
 
 Our main contributions are:
 \begin{itemize}
     \item \textbf{Differentiable Soft Discretization}: We propose representing numerical features as weighted aggregations of LDNs. This paradigm shifts numerical processing from coarse linear projections to fine-grained, value-level embeddings, effectively aligning them with categorical representations.
-    \item \textbf{Implicit Hierarchical Constraint}: We leverage the intrinsic curvature of hyperbolic space to enforce hierarchical constraints without explicit graphs guidance.
+    \item \textbf{Implicit Hierarchical Constraint}: We leverage the intrinsic curvature of hyperbolic space to enforce hierarchical constraints without explicit graph guidance.
     \item \textbf{Adaptive Semantic Capacity Allocation}: We introduce the entropy-aware capacity allocation algorithm to balance numerical LDNs' expressiveness and efficiency, preventing over- and under-parameterization.
     \item \textbf{SOTA Performance \& Efficiency}: HDE-Net achieves SOTA results on the TALENT-tiny-core classification benchmark, surpassing CatBoost, RealMLP, and ModernNCA. 
 \end{itemize}
@@ -324,11 +323,11 @@ Recent advances in Deep Tabular Learning can be categorized into four paradigms.
 \textit{(4) Foundation Models} like TabPFN \cite{hollmann2022tabpfn} leverage Prior-Data Fitted Networks (PFNs) pre-trained on synthetic datasets. Despite their zero-shot capabilities, they face scalability bottlenecks regarding context length ($N$) and feature dimensions.
 
 \subsection{Empirical Analysis of Architectural Limitations}
-To rigorously analyze the intrinsic architectural efficacy, we focus on the first two paradigms (Ad-hoc Fusion and Pseudo-Alignment) and compare them against GBDTs under comparable computational budgets. We exclude Retrieval and Foundation models from this specific analysis due to their discrepancy on research focus and resource requirements. We conduct a performance breakdown on the TALENT benchmark (see Table \ref{tab:motivation}) across datasets grouped by feature composition: \textit{Overall} (All datasets), \textit{Num-Only} (Datasets contains only numerical features), \textit{Num-Heavy} (Numerical dominant datasets), and \textit{Cat-Heavy} (Categorical dominant datasets). The results reveal critical insights: 
+To rigorously analyze the intrinsic architectural efficacy, we focus on the first two paradigms (Ad-hoc Fusion and Pseudo-Alignment) and compare them against GBDTs under comparable computational budgets. We exclude Retrieval and Foundation models from this specific analysis due to their discrepancy on research focus and resource requirements. We conduct a performance breakdown on the TALENT benchmark (see Table \ref{tab:motivation}) across datasets grouped by feature composition: \textit{Overall} (All datasets), \textit{Num-Only} (Datasets contain only numerical features), \textit{Num-Heavy} (Numerical dominant datasets), and \textit{Cat-Heavy} (Categorical dominant datasets). The results reveal critical insights: 
 \begin{itemize}
 	\item \textbf{GBDT Dominance:} Tree models remain the superior baseline, especially in \textit{Cat-Heavy} scenarios where they dominate (e.g., XGBoost Rank 3.0). Their performance degrades only in \textit{Num-Only} tasks.
 	\item \textbf{The Specialization Trap of Ad-hoc Fusion:} RealMLP achieves SOTA performance on \textit{Num-Only} datasets (Rank 6.4), validating its numerical embedding. Even the simplest MLP can defeat GBDTs' performance. However, all their performances collapse on \textit{Cat-Heavy} domains (RealMLP Rank 12.9, MLP Rank 21.0). This volatility indicates a failure to unify heterogeneous information within a coherent reasoning framework.
-	\item \textbf{The Inefficiency of Pseudo-Alignment:} FT-Transformer demonstrates stability across feature types, validating the utility of alignment. However, its inferior performance on numerical tasks (Rank 12.3) confirms that simple linear projections are a bottleneck. Furthermore, despite utilizing a significantly heavier backbone, it fails to surpass simpler MLP-based architectures like RealMLP in overall ranking.
+	\item \textbf{The Inefficiency of Pseudo-Alignment:} FT-Transformer demonstrates stability across feature types, validating the utility of alignment. However, its inferior performance on numerical tasks (Rank 12.3) confirms that simple linear projections are a bottleneck. Furthermore, despite using a significantly heavier backbone, it fails to outperform simpler MLP-based architectures such as RealMLP in overall ranking.
 \end{itemize}
 
 \begin{table}[tbp]
@@ -375,9 +374,9 @@ To rigorously analyze the intrinsic architectural efficacy, we focus on the firs
 
 Hyperbolic space is mathematically isomorphic to a continuous tree due to its exponential volume growth \cite{nickel2017poincare}. This property has driven a lot of representation learning in domains with explicit hierarchical structures, such as Graph Learning \cite{chami2019hyperbolic, dai2021hyperbolic}, Computer Vision \cite{lensink2022fully}, and Multimodal Learning (e.g., MERU \cite{desai2023hyperbolic}). General-purpose neural components, such as Hyperbolic Linear Layer \cite{shimizu2020hyperbolic}, have also been proposed to facilitate these applications.
 
-Closer to our work, recent studies have extended traditional machine learning to non-Euclidean geometries. Notably, HyperDT \cite{chlenski2023fast} generalizes decision trees to hyperbolic space, and PXgboost \cite{suganthan2025euclidean} extends XGBoost from Euclidean space to the Poincaré hyperbolic space by replacing Euclidean gradients and Hessians with Riemannian counterparts. These methods validates the geometric alignment between tree-based splitting and hyperbolic manifolds. However, they operate as traditional classifiers; they lack the \textit{end-to-end representation learning} capabilities of DNNs and cannot seamlessly integrate other unstructured modalities.
+Closer to our work, recent studies have extended traditional machine learning to non-Euclidean geometries. Notably, HyperDT \cite{chlenski2023fast} generalizes decision trees to hyperbolic space, and PXgboost \cite{suganthan2025euclidean} extends XGBoost from Euclidean space to the Poincaré hyperbolic space by replacing Euclidean gradients and Hessians with Riemannian counterparts. These methods validate the geometric alignment between tree-based splitting and hyperbolic manifolds. However, they operate as traditional classifiers; they lack the \textit{end-to-end representation learning} capabilities of DNNs and cannot seamlessly integrate other unstructured modalities.
 
-The application of hyperbolic geometry to Tabular DNNs, particularly for feature representation, remains a significant unexplored. HDE resolves the granularity and geometry mismatch issues. By mapping features to LDNs in the Poincaré ball, we empower a simple MLP backbone with the hierarchical reasoning logic of decision trees, combining geometric interpretability with deep representation power.
+The application of hyperbolic geometry to Tabular DNNs, particularly for feature representation, remains a significant unexplored area. HDE resolves the granularity and geometry mismatch issues. By mapping features to LDNs on the Poincaré ball, we equip a simple MLP backbone with the hierarchical reasoning of decision trees, combining geometric interpretability with deep representation power.
 
 \section{Preliminaries}
 \label{sec:preliminaries}
@@ -392,7 +391,7 @@ Hyperbolic geometry is a non-Euclidean geometry with constant negative curvature
 \end{equation}
 where $\oplus_c$ denotes the Möbius addition \cite{ungar2008analytic}. A key property of this space is that its volume grows exponentially with the radius. This aligns perfectly with the exponential growth of nodes in a decision tree as depth increases, making it an ideal continuous proxy for hierarchical tree structures \cite{nickel2017poincare}.
 
-\noindent\textbf{Hyperbolic Embedding: Poincaré vs. Lorentz.} 
+\noindent\textbf{Hyperbolic Embedding: Poincaré vs. Lorentz.}  
 While the Lorentz model is often preferred for numerical stability in complex GNNs \cite{yang2022hyperbolic}, HDE avoids complex manifold operations (e.g., inter-node addition) and frequent Euclidean-Hyperbolic projections. We therefore select the Poincaré ball for its conformal property to Euclidean space (angle-preserving) \cite{ganea2018hyperbolic}. This allows us to intuitively encode hierarchy via the norm (depth) and logical affinity via angles (sibling relations), achieving a direct geometric isomorphism with decision trees.
 
 \noindent\textbf{Tangent Space Projection.} 
@@ -413,13 +412,13 @@ Assigning a fixed number of LDNs ($k$) to all numerical features leads to subopt
 
 \subsection{Soft Decision Routing}
 \label{sec:sdr}
-For numerical features, we simulate the splitting process of decision trees to achieve semantic discretization. Given an numerical feature input $\bm{x}^{(num)}_j$, we employ a learnable gating mechanism, termed \textit{Soft Decision Routing}, to compute $k_j$ weights to couple with $k_j$ LDNs. Specifically, we define the routing weights $\bm{W}_j \in \mathbb{R}^{k_j}$ as:
+For numerical features, we simulate the decision-tree splitting process to achieve semantic discretization. Given an numerical feature input $\bm{x}^{(num)}_j$, we employ a learnable gating mechanism, termed \textit{Soft Decision Routing}, to compute $k_j$ weights to couple with $k_j$ LDNs. Specifically, we define the routing weights $\bm{W}_j \in \mathbb{R}^{k_j}$ as:
 \begin{equation}
     \bm{W}_j = \boldsymbol{a}_j x^{num}_j + \boldsymbol{b}_j, \quad \boldsymbol{W}_j \in \mathbb{R}^{k_j}
     \label{eq:router_weight}
 \end{equation}
-where $\boldsymbol{a}, \boldsymbol{b}$ are learnable parameters. Taking Figure~\ref{fig:arch} as an example, $k$ and $\bm{W}$ are calculated for the "Age" column, and $j$ denotes the index of "Age" feature in numerical feature list. 
-We then use $\bm{W}_j$ for weighted aggregation without a softmax or sigmoid activation. This design allows for flexible intensity scaling, preserving the magnitude information of the input. It effectively performs a soft aggregation operation rather than a hard selection. 
+where $\boldsymbol{a}, \boldsymbol{b}$ are learnable parameters. Taking Figure~\ref{fig:arch} as an example, $k$ and $\bm{W}$ are calculated for the "Age" column, and $j$ denotes the index of "Age" feature in the numerical feature list. 
+We then use $\bm{W}_j$ for weighted aggregation without a softmax or sigmoid activation. This design enables flexible intensity scaling while preserving the input's magnitude. It effectively performs a soft aggregation operation rather than a hard selection. 
 
 For categorical features $\bm{x}^{cat}$, the routing is deterministic, selecting the unique LDN corresponding to the category value. Consequently, categorical and numerical features are aligned in representational granularity, while numerical feature representations retain both linear (via intensity) and non-linear (via multiple LDNs) expressive capacity.
 
@@ -453,7 +452,7 @@ By optimizing these nodes in hyperbolic space, HDE implicitly captures a hierarc
 \subsection{Tangent Projection and Feature Aggregation}
 To enable efficient inference and compatibility with standard neural layers, we decouple the geometric representations from subsequent computations by projecting them onto the tangent space. For categorical features, whose category values are deterministic, the retrieved HDE projections $e^{cat} = \log_{\mathbf{0}}(\bm{Z}^{cat})$ can be used directly.
 
-For numerical features, we need to aggregates the corresponding HDEs using $\bm{W}$ calculated in Section~\ref{sec:sdr}. To avoid expensive Möbius operations on the manifold, we project all related LDNs to the Tangent space first, then perform weighted aggregation. Take numerical feature $j$ as an example, $\bm{Z}_j = \{z_0, ..., z_{k_j}\}, \quad \bm{Z}_j \subset \bm{Z}$. Its final Euclidean representation is:
+For numerical features, we need to aggregate the corresponding HDEs using $\bm{W}$ calculated in Section~\ref{sec:sdr}. To avoid expensive Möbius operations on the manifold, we project all related LDNs to the Tangent space first, then perform weighted aggregation. Take numerical feature $j$ as an example, $\bm{Z}_j = \{z_0, ..., z_{k_j}\}, \quad \bm{Z}_j \subset \bm{Z}$. Its final Euclidean representation is:
 \begin{equation}
 	e_j^{num} = \frac{1}{k_j}\sum_{n=0}^{k_j}w_{j,n} \log_{\mathbf{0}}(z_{j, n}), \quad \{w_{j,0}, w_{j,1}, ..., w_{j,k_j}\} = \bm{W}_j
 \end{equation}
@@ -467,11 +466,39 @@ To build the HDE-Net, the embeddings from all features $(e^{cat}, e^{num})$ are 
 \subsection{Setups}
 \label{sec:setups}
 
-% Table generated by Excel2LaTeX from sheet 'Sheet3'\begin{table*}[htbp]
-\small  \centering  \caption{Performance of HDE-Net across all datasets in the TALENT-tiny core classification benchmark}
+% Table generated by Excel2LaTeX from sheet 'Sheet3'
+\begin{table*}[htbp]
+\small
+  \centering
+  \caption{Performance of HDE-Net across all datasets in the TALENT-tiny core classification benchmark}
   \vskip -10pt
-  \scalebox{0.86}{    \begin{tabular}{lccccclccccc}    \toprule    \multicolumn{12}{c}{\textbf{HDE-Net}} \\    \midrule    \multicolumn{1}{c}{\textbf{Datasets}} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{AUC} & \textbf{Accuracy} & \multicolumn{1}{c}{\textbf{Datasets}} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{AUC} & \textbf{Accuracy} \\    \midrule    ada   & 80.90\% & 80.12\% & 80.47\% & 89.44\% & 85.60\% & law-school-admission & 100.00\% & 100.00\% & 100.00\% & 100.00\% & 100.00\% \\    airlines & 63.92\% & 63.26\% & 63.21\% & 65.05\% & 64.30\% & microaggregation2 & 57.55\% & 39.19\% & 41.22\% & 82.00\% & 63.83\% \\    allbp & 83.81\% & 64.80\% & 71.42\% & 94.95\% & 97.58\% & national-longitudinal & 99.81\% & 99.80\% & 99.81\% & 99.99\% & 99.82\% \\    ASP-POTASSCO & 37.71\% & 35.77\% & 36.03\% & 80.66\% & 42.59\% & okcupid\_stem & 67.98\% & 51.01\% & 52.81\% & 80.55\% & 75.35\% \\    autoUniv-au7-1100 & 42.35\% & 40.82\% & 40.16\% & 69.24\% & 41.95\% & online\_shoppers & 83.46\% & 77.78\% & 80.18\% & 91.79\% & 90.49\% \\    company\_bankruptcy & 85.15\% & 69.17\% & 74.33\% & 95.99\% & 97.52\% & ozone\_level & 49.11\% & 49.90\% & 49.50\% & 68.64\% & 98.03\% \\    eucalyptus & 73.34\% & 70.64\% & 71.42\% & 93.50\% & 73.92\% & pc4   & 82.58\% & 69.05\% & 73.08\% & 93.08\% & 90.72\% \\    Gender\_Gap & 53.54\% & 42.88\% & 43.90\% & 65.37\% & 60.17\% & PhishingWebsites & 97.91\% & 97.74\% & 97.82\% & 99.71\% & 97.85\% \\    hill-valley & 73.33\% & 72.81\% & 72.65\% & 77.48\% & 72.80\% & rice\_cammeo\_\&\_osmancik & 93.11\% & 92.33\% & 92.65\% & 97.62\% & 92.86\% \\    house\_16H & 88.40\% & 88.39\% & 88.39\% & 94.69\% & 88.39\% & shill-bidding & 64.99\% & 56.06\% & 56.99\% & 71.46\% & 90.24\% \\    ibm-employee-performance & 100.00\% & 100.00\% & 100.00\% & 100.00\% & 100.00\% & Shipping & 75.97\% & 73.07\% & 68.75\% & 73.77\% & 69.05\% \\    INNHotelsGroup & 87.26\% & 86.21\% & 86.69\% & 94.49\% & 88.43\% & statlog & 68.87\% & 67.75\% & 68.20\% & 73.80\% & 74.05\% \\    internet\_firewall & 93.22\% & 77.66\% & 81.90\% & 98.85\% & 93.09\% & thyroid & 96.34\% & 97.60\% & 96.92\% & 99.88\% & 99.40\% \\    jasmine & 82.10\% & 79.37\% & 78.90\% & 84.06\% & 79.35\% & waveform\_version\_1 & 87.10\% & 87.09\% & 87.06\% & 96.85\% & 87.12\% \\    jungle\_chess\_2pcs & 97.67\% & 97.68\% & 97.66\% & 99.88\% & 98.20\% & wine-quality-red & 39.23\% & 33.01\% & 33.67\% & 75.98\% & 62.97\% \\    \bottomrule    \end{tabular}%
-    }  \label{tab:HDE-Net_perf}%\end{table*}%
+  \scalebox{0.86}{
+    \begin{tabular}{lccccclccccc}
+    \toprule
+    \multicolumn{12}{c}{\textbf{HDE-Net}} \\
+    \midrule
+    \multicolumn{1}{c}{\textbf{Datasets}} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{AUC} & \textbf{Accuracy} & \multicolumn{1}{c}{\textbf{Datasets}} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{AUC} & \textbf{Accuracy} \\
+    \midrule
+    ada   & 80.90\% & 80.12\% & 80.47\% & 89.44\% & 85.60\% & law-school-admission & 100.00\% & 100.00\% & 100.00\% & 100.00\% & 100.00\% \\
+    airlines & 63.92\% & 63.26\% & 63.21\% & 65.05\% & 64.30\% & microaggregation2 & 57.55\% & 39.19\% & 41.22\% & 82.00\% & 63.83\% \\
+    allbp & 83.81\% & 64.80\% & 71.42\% & 94.95\% & 97.58\% & national-longitudinal & 99.81\% & 99.80\% & 99.81\% & 99.99\% & 99.82\% \\
+    ASP-POTASSCO & 37.71\% & 35.77\% & 36.03\% & 80.66\% & 42.59\% & okcupid\_stem & 67.98\% & 51.01\% & 52.81\% & 80.55\% & 75.35\% \\
+    autoUniv-au7-1100 & 42.35\% & 40.82\% & 40.16\% & 69.24\% & 41.95\% & online\_shoppers & 83.46\% & 77.78\% & 80.18\% & 91.79\% & 90.49\% \\
+    company\_bankruptcy & 85.15\% & 69.17\% & 74.33\% & 95.99\% & 97.52\% & ozone\_level & 49.11\% & 49.90\% & 49.50\% & 68.64\% & 98.03\% \\
+    eucalyptus & 73.34\% & 70.64\% & 71.42\% & 93.50\% & 73.92\% & pc4   & 82.58\% & 69.05\% & 73.08\% & 93.08\% & 90.72\% \\
+    Gender\_Gap & 53.54\% & 42.88\% & 43.90\% & 65.37\% & 60.17\% & PhishingWebsites & 97.91\% & 97.74\% & 97.82\% & 99.71\% & 97.85\% \\
+    hill-valley & 73.33\% & 72.81\% & 72.65\% & 77.48\% & 72.80\% & rice\_cammeo\_\&\_osmancik & 93.11\% & 92.33\% & 92.65\% & 97.62\% & 92.86\% \\
+    house\_16H & 88.40\% & 88.39\% & 88.39\% & 94.69\% & 88.39\% & shill-bidding & 64.99\% & 56.06\% & 56.99\% & 71.46\% & 90.24\% \\
+    ibm-employee-performance & 100.00\% & 100.00\% & 100.00\% & 100.00\% & 100.00\% & Shipping & 75.97\% & 73.07\% & 68.75\% & 73.77\% & 69.05\% \\
+    INNHotelsGroup & 87.26\% & 86.21\% & 86.69\% & 94.49\% & 88.43\% & statlog & 68.87\% & 67.75\% & 68.20\% & 73.80\% & 74.05\% \\
+    internet\_firewall & 93.22\% & 77.66\% & 81.90\% & 98.85\% & 93.09\% & thyroid & 96.34\% & 97.60\% & 96.92\% & 99.88\% & 99.40\% \\
+    jasmine & 82.10\% & 79.37\% & 78.90\% & 84.06\% & 79.35\% & waveform\_version\_1 & 87.10\% & 87.09\% & 87.06\% & 96.85\% & 87.12\% \\
+    jungle\_chess\_2pcs & 97.67\% & 97.68\% & 97.66\% & 99.88\% & 98.20\% & wine-quality-red & 39.23\% & 33.01\% & 33.67\% & 75.98\% & 62.97\% \\
+    \bottomrule
+    \end{tabular}%
+    }
+  \label{tab:HDE-Net_perf}%
+\end{table*}%
 
 \begin{figure*}[h]
     \centering
@@ -491,7 +518,7 @@ We include a comprehensive pool of 31 baselines whose results are officially dis
 For HDE-Net, the dimension of Hyperbolic Decision Embeddings is fixed at 12 across all datasets. The number of LDNs for each numerical feature is adaptively assigned via the Entropy-Aware Capacity Allocation mechanism (Sec. \ref{sec:entropy}) with $k_{\min}=2$ and $k_{\max}=8$. To ensure a fair comparison, the hyperparameters for the MLP backbone are retrieved from the TALENT repository\footnote{\url{https://github.com/LAMDA-Tabular/TALENT}} for each specific dataset. For datasets without pre-tuned settings, we adopt the default configuration: two hidden layers of size 384 with a dropout of 0.1, trained with a learning rate of $3 \times 10^{-4}$ and weight decay of $1 \times 10^{-5}$. The LDNs are optimized using Riemannian Adam, with its learning rate and weight decay consistent with the standard AdamW optimizer used for Euclidean parameters.
 
 \textbf{Evaluation Metrics and Ranking.}
-Our model was evaluated on all datasets with 10 repeated runs, and mean accuracy was recorded. We report the average rank computed using the Wilcoxon–Holm test \cite{demvsar2006statistical} over all accuracy results at a significance level of 0.05. It is critical to note that since ranking is a relative metric, the absolute rank of a model (e.g., HDE-Net) depends entirely on the specific model and dataset pool included in the comparison. Consequently, the ranks reported in the \textit{Performance Comparison} (Sec. \ref{sec:main_results}), \textit{Performance Comparison} (Sec. \ref{sec:robustness}) and the \textit{Mechanism Analysis and Ablation Study} (Sec. \ref{sec:ablation}) may differ due to the varying sets of HDE-Net variants involved.
+Our model was evaluated on all datasets with 10 repeated runs, and the mean accuracy was recorded. We report the average rank computed using the Wilcoxon–Holm test \cite{demvsar2006statistical} over all accuracy results at a significance level of 0.05. It is critical to note that since ranking is a relative metric, the absolute rank of a model (e.g., HDE-Net) depends entirely on the specific model and dataset pool included in the comparison. Consequently, the ranks reported in the \textit{Performance Comparison} (Sec. \ref{sec:main_results}), \textit{Performance Comparison} (Sec. \ref{sec:robustness}) and the \textit{Mechanism Analysis and Ablation Study} (Sec. \ref{sec:ablation}) may differ due to the varying sets of HDE-Net variants involved.
 
 \subsection{Performance Comparison}
 \label{sec:main_results}
@@ -502,7 +529,7 @@ HDE-Net exhibits a clear statistical advantage over a vast majority of deep lear
 \subsection{Robustness across Feature Scenarios}
 \label{sec:robustness}
 
-To further investigate the adaptability of HDE-Net to different feature compositions, we analyze the average ranking across three specific scenarios: \textit{Num-only} (Datasets contains only numerical features), \textit{Num-Heavy} (Numerical dominant datasets), and \textit{Cat-Heavy} (Categorical dominant datasets). Since the benchmark contains only one categorical-only dataset (\texttt{ozone\_level}), it is merged into the \textit{Cat-Heavy} group. We select representative models from each paradigm for comparison: XGBoost (Tree), RealMLP (Ad-hoc Fusion), FT-Transformer (Pseudo-Alignment), and ModernNCA (Retrieval). The results are illustrated in Figure \ref{fig:scenarios}.
+To further investigate the adaptability of HDE-Net to different feature compositions, we analyze the average ranking across three specific scenarios: \textit{Num-only} (Datasets contain only numerical features), \textit{Num-Heavy} (Numerical dominant datasets), and \textit{Cat-Heavy} (Categorical dominant datasets). Since the benchmark contains only one categorical-only dataset (\texttt{ozone\_level}), it is merged into the \textit{Cat-Heavy} group. We select representative models from each paradigm for comparison: XGBoost (Tree), RealMLP (Ad-hoc Fusion), FT-Transformer (Pseudo-Alignment), and ModernNCA (Retrieval). The results are illustrated in Figure \ref{fig:scenarios}.
 
 \noindent\textbf{Effective Numerical Representation.} In the \textit{Num-only} scenario, HDE-Net achieves a rank of 4.64, outperforming RealMLP (7.04) and FT-Transformer (13.25). 
 This performance gap empirically validates that our Soft Decision Routing mechanism effectively captures the fine-grained semantics of numerical features at the value level. In contrast, standard Transformer architectures (like FTT) struggle to model pure numerical manifolds efficiently due to their reliance on coarse linear projections.
@@ -572,7 +599,7 @@ To disentangle the contributions of our design choices, we evaluate two variants
 \noindent\textbf{Efficacy of Entropy-aware Allocation}
 We further analyze the parameter sensitivity of the number of LDNs ($k$). We compare HDE-Net (Adaptive $k$) against variants with fixed $k \in \{2, 4, 6, 8, 10\}$. 
 The results (Fig~\ref{fig:sensitivity_bar}) exhibit a clear Arch-shaped ranking trend for fixed-capacity models ($k=2$ to $k=10$). Models with $k \le 6$ suffer from under-parameterization (insufficient decision nodes), while $k=10$ shows signs of over-parameterization, increasing the complexity burden on the MLP classifier. 
-Meanwhile, HDE-Net (Rank 5.73) significantly outperforms the best fixed variant ($k=8$, Rank 7.92). This empirical gap demonstrates the superiority of our adaptation which effectively assigns decision bandwidth where it is most needed, finding a superior balance between expressiveness and efficiency that no fixed-parameter model can achieve.
+Meanwhile, HDE-Net (Rank 5.73) significantly outperforms the best fixed variant ($k=8$, Rank 7.92). This empirical gap demonstrates the superiority of our adaptation, which effectively assigns decision bandwidth where it is most needed, finding a superior balance between expressiveness and efficiency that no fixed-parameter model can achieve.
 
 \subsection{Efficiency Analysis: Complexity and Cost}
 \label{sec:efficiency}
@@ -580,11 +607,11 @@ Meanwhile, HDE-Net (Rank 5.73) significantly outperforms the best fixed variant 
 To evaluate the computational efficiency of HDE-Net, we analyze its theoretical complexity and quantitatively compare it against leading baselines. 
 
 \noindent\textbf{Theoretical Complexity.}
-Structure-based models like FT-Transfo\-rmer rely on self-attention mechanisms, resulting in a computational complexity of $\mathcal{O}(L \cdot N_{feat}^2)$, where $L$ is the number of layers and $N_{feat}$ is the number of features. Retrieval-based methods like TabR and ModernNCA require searching nearest neighbors from the training set size $N_{train}$ at inference time, leading to a complexity of $\mathcal{O}(N_{train} \cdot d)$.
+Structure-based models like FT-Transformer rely on self-attention mechanisms, resulting in a computational complexity of $\mathcal{O}(L \cdot N_{feat}^2)$, where $L$ is the number of layers and $N_{feat}$ is the number of features. Retrieval-based methods like TabR and ModernNCA require searching nearest neighbors from the training set size $N_{train}$ at inference time, leading to a complexity of $\mathcal{O}(N_{train} \cdot d)$.
 In contrast, HDE-Net employs a lightweight MLP backbone. The HDE layer performs element-wise routing and aggregation, scaling linearly with the number of features and the corresponding capacity $K$ (for simplicity, here $K$ denotes both the cardinality of categorical features and the number of LDNs allocated to numerical features). Thus, the complexity of HDE-Net is strictly $\mathcal{O}(N_{feat} \cdot K + \text{MLP}_{depth})$, eliminating the quadratic bottleneck of Transformers and the retrieval overhead of neighbor-based methods.
 
 \noindent\textbf{Quantitative Comparison.}
- We selected the \texttt{INNHotelsGroup} dat\-aset from the TALENT benchmark, which features a balanced composition of categorical (6) and numerical (11) features with 29,020 samples, providing a representative scenario for both retrieval-based and architecture-based methods. Inference time was measured on an NVIDIA RTX A4000 GPU with a batch size of 10,240 to maximize throughput and minimize I/O overhead. We compared HDE-Net against top-performing DNN baselines: FT-Transformer (Structure-based), ModernNCA (Retrieval-based), and RealMLP (Ad-hoc Fusion), using their optimal hyperparameter configurations provided by the benchmark. As detailed in Table \ref{tab:efficiency}, HDE-Net achieves a remarkable balance between efficiency and performance:
+ We selected the \texttt{INNHotelsGroup} dataset from the TALENT benchmark, which features a balanced composition of categorical (6) and numerical (11) features with 29,020 samples, providing a representative scenario for both retrieval-based and architecture-based methods. Inference time was measured on an NVIDIA RTX A4000 GPU with a batch size of 10,240 to maximize throughput and minimize I/O overhead. We compared HDE-Net against top-performing DNN baselines: FT-Transformer (Structure-based), ModernNCA (Retrieval-based), and RealMLP (Ad-hoc Fusion), using their optimal hyperparameter configurations provided by the benchmark. As detailed in Table \ref{tab:efficiency}, HDE-Net achieves a remarkable balance between efficiency and performance:
  
  \begin{table}[h]
   \centering
@@ -620,10 +647,10 @@ To validate our core claim that HDE-Net establishes a geometric isomorphism with
 \noindent\textbf{Split Logic Alignment via Router Weights.} 
 We examine whether the \textit{Soft Decision Router} reconstructs the range-splitting logic of decision trees. For a specific numerical feature $j$, we visualize all related routing weights $\bm{W}_j = \{w_{j,0}, ..., w_{j, k_j}\}$ (from Eq.~\ref{eq:router_weight}) across its entire value range. As shown in Figure \ref{fig:router_vis}, the x-axis represents sorted feature input values, and each colored line corresponds to one weight within $\bm{W}_j$. 
 
-In \texttt{ibm-employee-performance} ($k=2$) and \texttt{company-bankrup\-tcy} ($k=4$) datasets, the intersection points of these weight curves (one LDN's influence begins to surpass another) align remarkably well with the hard split thresholds learned by a standard Decision Tree (via \textit{scikit-learn}\footnote{https://scikit-learn.org/}). Moreover, the zero-crossing points (where $w_{j,k} = 0$) also align with signify a transition in the node's contribution from negative to positive, effectively acting as a soft decision boundary. This phenomenon demonstrates that HDE-Net implicitly reconstructs the discrete range-splitting mechanism of trees while maintaining a differentiable formulation suitable for gradient-based optimization.
+In \texttt{ibm-employee-performance} ($k=2$) and \texttt{company-bankruptcy} ($k=4$) datasets, the intersection points of these weight curves (one LDN's influence begins to surpass another) align remarkably well with the hard split thresholds learned by a standard Decision Tree (via \textit{scikit-learn}\footnote{https://scikit-learn.org/}). Moreover, the zero-crossing points (where $w_{j,k} = 0$) also align with signify a transition in the node's contribution from negative to positive, effectively acting as a soft decision boundary. This phenomenon demonstrates that HDE-Net implicitly reconstructs the discrete range-splitting mechanism of trees while maintaining a differentiable formulation suitable for gradient-based optimization.
 
 \noindent\textbf{Hierarchical Structure in Poincaré Space.}
-We further visualize the learned distribution of HDEs to confirm their hierarchical nature. We first compute the pairwise manifold distance matrix $\mathbf{D} \in \mathbb{R}^{M \times M}$ for all $M$ categorical HDEs using the Poincaré distance formula $d_{\mathbb{B}}$ defined in Eq. (1). Then, we apply \textit{Multidimensional Scaling (MDS)} to project these hyperbolic points into a 2D Euclidean space. 
+We further visualize the learned HDE distribution to confirm its hierarchical nature. We first compute the pairwise manifold distance matrix $\mathbf{D} \in \mathbb{R}^{M \times M}$ for all $M$ categorical HDEs using the Poincaré distance formula $d_{\mathbb{B}}$ defined in Eq. (1). Then, we apply \textit{Multidimensional Scaling (MDS)} to project these hyperbolic points into a 2D Euclidean space. 
 Each LDN is colored based on its \textit{Feature Importance} (Cover Rate) provided by a pre-trained XGBoost model, representing its relative level in the tree hierarchy. Note that the Soft Decision Router is not strictly equivalent to the range splits in GBDTs. Therefore, we visualize only the HDEs of categorical features. To this end, we select two categorical-dominant datasets, \texttt{ozone\_level} (36 categorical features) and \texttt{allbp} (23 categorical features), for our visualization (Fig. \ref{fig:hde_vis}). There are two findings:
 \begin{figure}[h]
     \centering
@@ -639,11 +666,9 @@ Each LDN is colored based on its \textit{Feature Importance} (Cover Rate) provid
 
 \section{Conclusion}
 \label{sec:conclusion}
-In this paper, we address the fundamental \textit{Representation Granularity Mismatch} and \textit{Geometric Mismatch} in deep tabular learning. We propose \textbf{HDE-Net}, a framework that establishes a geometric isomorphism between neural embeddings and decision trees. Central to our approach is the unification of heterogeneous features into LDNs embedded in the Hyperbolic Poincaré ball to construct HDEs. We implement this via Soft Decision Routing, which upgrades numerical modeling to fine-grained, value-level discretizations, while our Entropy-aware Capacity Allocation ensures that the number of LDNs is adaptively allocated for feature complexity.
-
-Extensive experiments on the TALENT-tiny-core benchmark demonstrate that HDE-Net achieves SOTA (Rank 1st) performance, consistently outperforming industrial GBDTs (CatBoost, XGBoost) and advanced deep baselines (RealMLP, ModernNCA). Crucially, this performance does not come at the cost of efficiency. Unlike Transformer-based architectures that rely on heavy attention mechanisms, HDE-Net maintains the speed advantage of the lightweight MLP. 
-
-Our findings suggest that geometric alignment with the data's inherent structure is a promising direction. We believe HDE provides a foundational geometric framework for tabular data, paving the way for future research into scalable, cross-modal foundation models.
+In this paper, we address the fundamental \textit{Representation Granularity Mismatch} and \textit{Geometric Mismatch} in deep tabular learning. We propose \textbf{HDE-Net}, a framework that establishes a geometric isomorphism between neural embeddings and decision trees. Central to our approach is the unification of heterogeneous features into LDNs embedded in the Hyperbolic Poincaré ball to construct HDEs. We implement this via Soft Decision Routing, which upgrades numerical modeling to fine-grained, value-level discretizations, while our Entropy-aware Capacity Allocation ensures that the number of LDNs is adaptively allocated for feature complexity. % 
+%
+Extensive experiments on the TALENT-tiny-core benchmark demonstrate that HDE-Net achieves SOTA (Rank 1st) performance, consistently outperforming industrial GBDTs (CatBoost, XGBoost) and advanced deep baselines (RealMLP, ModernNCA). Crucially, this performance does not come at the cost of efficiency. Unlike Transformer-based architectures that rely on heavy attention mechanisms, HDE-Net maintains the speed advantage of the lightweight MLP. Our findings suggest that geometric alignment with the data's inherent structure is a promising direction. We believe HDE provides a foundational geometric framework for tabular data, paving the way for future research into scalable, cross-modal foundation models.
 
 %In this paper, we address the fundamental Dual Deficiency of deep tabular learning, representation granularity mismatch and the lack of intrinsic hierarchical geometry. By proposing \textbf{HDE-Net}, we establish a novel geometric isomorphism between neural embeddings and the robust reasoning logic of decision trees. Our framework unifies heterogeneous features into a standardized set of LDNs within the Poincaré ball model, where Soft Decision Routing elevates numerical feature modeling from a coarse feature-level projection to a fine-grained value-level discretization. 
 %
@@ -1201,14 +1226,57 @@ To Robert, for the bagels and explaining CMYK and color spaces.
 \section{Statistics of the Datasets}
 \label{app:datasets}
 Table \ref{tab:datasets} presents detailed statistics of the datasets in the TALENT-tiny-core classification benchmark. Class denotes the number of target classes, Cat the number of categorical features, Num the number of numerical features, and Size the dataset size. All statistics are obtained from the official TALENT GitHub repository.
-\begin{table}[htbp]
-\small  \centering  \caption{Detailed statistics of the datasets in the TALENT-tiny-core classification benchmark}
-  	\scalebox{1.0}{    \begin{tabular}{rrrrr}    \toprule    \multicolumn{1}{l}{\textbf{name}} & \multicolumn{1}{l}{\textbf{Class}} & \multicolumn{1}{l}{\textbf{Cat}} & \multicolumn{1}{l}{\textbf{Num}} & \multicolumn{1}{l}{\textbf{Size}} \\    \midrule    \multicolumn{1}{l}{ada} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{48} & \multicolumn{1}{c}{3317} \\    \multicolumn{1}{l}{airlines} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{1600} \\    \multicolumn{1}{l}{allbp} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{23} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{3017} \\    \multicolumn{1}{l}{ASP-POTASSCO} & \multicolumn{1}{c}{11} & \multicolumn{1}{c}{1} & \multicolumn{1}{c}{140} & \multicolumn{1}{c}{1035} \\    \multicolumn{1}{l}{autoUniv-au7-1100} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{8} & \multicolumn{1}{c}{880} \\    \multicolumn{1}{l}{company\_bankruptcy} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{93} & \multicolumn{1}{c}{5455} \\    \multicolumn{1}{l}{eucalyptus} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{14} & \multicolumn{1}{c}{588} \\    \multicolumn{1}{l}{Gender\_Gap\_in\_Spanish} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{13} & \multicolumn{1}{c}{3796} \\    \multicolumn{1}{l}{hill-valley} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{100} & \multicolumn{1}{c}{969} \\    \multicolumn{1}{l}{house\_16H} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{16} & \multicolumn{1}{c}{10790} \\    \multicolumn{1}{l}{ibm-employee-performance} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{23} & \multicolumn{1}{c}{1176} \\    \multicolumn{1}{l}{INNHotelsGroup} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{11} & \multicolumn{1}{c}{29020} \\    \multicolumn{1}{l}{internet\_firewall} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{52425} \\    \multicolumn{1}{l}{jasmine} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{136} & \multicolumn{1}{c}{8} & \multicolumn{1}{c}{2387} \\    \multicolumn{1}{l}{jungle\_chess\_2pcs} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{35855} \\    \multicolumn{1}{l}{law-school-admission} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{16640} \\    \multicolumn{1}{l}{microaggregation2} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{20} & \multicolumn{1}{c}{16000} \\    \multicolumn{1}{l}{national-longitudinal} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{9} & \multicolumn{1}{c}{3926} \\    \multicolumn{1}{l}{okcupid\_stem} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{11} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{21341} \\    \multicolumn{1}{l}{online\_shoppers} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{9} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{9864} \\    \multicolumn{1}{l}{ozone\_level} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{36} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{2028} \\    \multicolumn{1}{l}{pc4} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{37} & \multicolumn{1}{c}{1166} \\    \multicolumn{1}{l}{PhishingWebsites} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{30} & \multicolumn{1}{c}{8844} \\    \multicolumn{1}{l}{rice\_cammeo\_\&\_osmancik} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{3048} \\    \multicolumn{1}{l}{shill-bidding} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{5056} \\    \multicolumn{1}{l}{Shipping} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{8799} \\    \multicolumn{1}{l}{statlog} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{13} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{800} \\    \multicolumn{1}{l}{thyroid} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{21} & \multicolumn{1}{c}{5760} \\    \multicolumn{1}{l}{waveform} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{21} & \multicolumn{1}{c}{4000} \\    \multicolumn{1}{l}{wine-quality-red} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{1279} \\    \midrule          &       &       &       &  \\    \end{tabular}%
-    }  \label{tab:datasets}%\end{table}%
+
+\begin{table}[htbp]
+\small
+  \centering
+  \caption{Detailed statistics of the datasets in the TALENT-tiny-core classification benchmark}
+  	\scalebox{1.0}{
+    \begin{tabular}{rrrrr}
+    \toprule
+    \multicolumn{1}{l}{\textbf{name}} & \multicolumn{1}{l}{\textbf{Class}} & \multicolumn{1}{l}{\textbf{Cat}} & \multicolumn{1}{l}{\textbf{Num}} & \multicolumn{1}{l}{\textbf{Size}} \\
+    \midrule
+    \multicolumn{1}{l}{ada} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{48} & \multicolumn{1}{c}{3317} \\
+    \multicolumn{1}{l}{airlines} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{1600} \\
+    \multicolumn{1}{l}{allbp} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{23} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{3017} \\
+    \multicolumn{1}{l}{ASP-POTASSCO} & \multicolumn{1}{c}{11} & \multicolumn{1}{c}{1} & \multicolumn{1}{c}{140} & \multicolumn{1}{c}{1035} \\
+    \multicolumn{1}{l}{autoUniv-au7-1100} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{8} & \multicolumn{1}{c}{880} \\
+    \multicolumn{1}{l}{company\_bankruptcy} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{93} & \multicolumn{1}{c}{5455} \\
+    \multicolumn{1}{l}{eucalyptus} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{14} & \multicolumn{1}{c}{588} \\
+    \multicolumn{1}{l}{Gender\_Gap\_in\_Spanish} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{13} & \multicolumn{1}{c}{3796} \\
+    \multicolumn{1}{l}{hill-valley} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{100} & \multicolumn{1}{c}{969} \\
+    \multicolumn{1}{l}{house\_16H} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{16} & \multicolumn{1}{c}{10790} \\
+    \multicolumn{1}{l}{ibm-employee-performance} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{23} & \multicolumn{1}{c}{1176} \\
+    \multicolumn{1}{l}{INNHotelsGroup} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{11} & \multicolumn{1}{c}{29020} \\
+    \multicolumn{1}{l}{internet\_firewall} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{52425} \\
+    \multicolumn{1}{l}{jasmine} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{136} & \multicolumn{1}{c}{8} & \multicolumn{1}{c}{2387} \\
+    \multicolumn{1}{l}{jungle\_chess\_2pcs} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{35855} \\
+    \multicolumn{1}{l}{law-school-admission} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{16640} \\
+    \multicolumn{1}{l}{microaggregation2} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{20} & \multicolumn{1}{c}{16000} \\
+    \multicolumn{1}{l}{national-longitudinal} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{9} & \multicolumn{1}{c}{3926} \\
+    \multicolumn{1}{l}{okcupid\_stem} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{11} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{21341} \\
+    \multicolumn{1}{l}{online\_shoppers} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{9} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{9864} \\
+    \multicolumn{1}{l}{ozone\_level} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{36} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{2028} \\
+    \multicolumn{1}{l}{pc4} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{37} & \multicolumn{1}{c}{1166} \\
+    \multicolumn{1}{l}{PhishingWebsites} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{30} & \multicolumn{1}{c}{8844} \\
+    \multicolumn{1}{l}{rice\_cammeo\_\&\_osmancik} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{3048} \\
+    \multicolumn{1}{l}{shill-bidding} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{5056} \\
+    \multicolumn{1}{l}{Shipping} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{5} & \multicolumn{1}{c}{8799} \\
+    \multicolumn{1}{l}{statlog} & \multicolumn{1}{c}{2} & \multicolumn{1}{c}{13} & \multicolumn{1}{c}{7} & \multicolumn{1}{c}{800} \\
+    \multicolumn{1}{l}{thyroid} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{21} & \multicolumn{1}{c}{5760} \\
+    \multicolumn{1}{l}{waveform} & \multicolumn{1}{c}{3} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{21} & \multicolumn{1}{c}{4000} \\
+    \multicolumn{1}{l}{wine-quality-red} & \multicolumn{1}{c}{6} & \multicolumn{1}{c}{0} & \multicolumn{1}{c}{4} & \multicolumn{1}{c}{1279} \\
+    \midrule
+          &       &       &       &  \\
+    \end{tabular}%
+    }
+  \label{tab:datasets}%
+\end{table}%
 
 \section{Models for Comparison}
 \label{app:comp_models}
-Table \ref{tab:comp_models} lists all models included in the ranking, with results provided by the official TALENT project. Note that some recent models, such as TabM and TabPFN v2, are excluded because their official benchmark results on TALENT have not yet been released, although their code has been integrated into the framework. We report full dataset-level results for HDE-Net to facilitate future comparisons.
+Table \ref{tab:comp_models} lists all models included in the ranking, with results provided by the official TALENT project. Note that some recent models, such as TabM and TabPFN v2, are excluded because their official benchmark results on TALENT have not yet been released, although their code has been integrated into the framework. We report full dataset-level results for HDE-Net to facilitate future comparisons.
+
 \begin{table}[]
 \caption{Models for Comparison}
 \label{tab:comp_models}
